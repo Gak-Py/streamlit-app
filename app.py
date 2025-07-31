@@ -1,33 +1,51 @@
 import streamlit as st
 import time
 import random
+import pandas as pd
+from datetime import datetime
 
 st.title("AIおみくじ🎴")
 
-# セッションステートで履歴を保持
+# 履歴保持
 if "history" not in st.session_state:
     st.session_state.history = []
 
 name = st.text_input("あなたの名前を入力してください")
 
-# くじの結果一覧（当たり1、ハズレ3）
-results = ["🎯 当たり", "💥 ハズレ", "💥 ハズレ", "💥 ハズレ"]
+results = ["🎯 当たり", "💥 ハズレ", "💥 ハズレ", "💥 ハズレ","🎯 大当たり!!",]
 
-if st.button("くじを引く！"):
-    if name.strip() == "":
-        st.warning("名前を入力してください！")
-    else:
-        with st.spinner("ドゥルルルル… 🎲 結果をお待ちください！"):
-            time.sleep(2)  # 演出のための2秒待機
-        result = random.choice(results)
-        st.success(f"{name}さんの結果は… {result}！")
-        st.session_state.history.append({"name": name, "result": result})
+if name and st.button("くじを引く！"):
+    with st.spinner("ドゥルルルル… 🎲 結果をお待ちください！"):
+        time.sleep(2)
+    result = random.choice(results)
+    date = datetime.now().strftime("%Y年%m月%d日 %H:%M")
+    st.success(f"{name}さんの結果は… {result}！")
+    
+    # 大当たりの時にバルーン飛ばす
+    if "大当たり" in result:
+        st.balloons()
 
-# 抽選履歴の表示
+    st.session_state.history.append({
+        "名前": name,
+        "結果": result,
+        "日時": date
+    })
+
+
+# 表表示（🎯当たりに色付け）
 if st.session_state.history:
-    st.subheader("📜 過去の結果")
-    history = st.session_state.history
-    total = len(history)
-    for i, entry in enumerate(reversed(history)):
-        count = i + 1
-        st.write(f"{total - count + 1}回目：{entry['name']} さん → {entry['result']}")
+    st.subheader("📋 抽選履歴")
+    df = pd.DataFrame(st.session_state.history)
+    df.index = [f"{i+1}回目" for i in range(len(df))]
+
+    # スタイル関数
+    def highlight_win(row):
+        if "大当たり" in row["結果"]:
+            return ["background-color: #ffe599"] * len(row)  # やさしい黄色
+        elif "当たり" in row["結果"]:
+            return ["background-color: #ffe59977"] * len(row)  # やさしい黄色
+        else:
+            return [""] * len(row)
+
+    styled_df = df[::-1].style.apply(highlight_win, axis=1)
+    st.dataframe(styled_df, use_container_width=True)
