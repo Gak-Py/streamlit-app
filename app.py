@@ -3,6 +3,7 @@ import time
 import random
 import pandas as pd
 from datetime import datetime
+import pytz
 
 st.title("AIおみくじ🎴")
 
@@ -18,7 +19,8 @@ if name and st.button("くじを引く！"):
     with st.spinner("ドゥルルルル… 🎲 結果をお待ちください！"):
         time.sleep(2)
     result = random.choice(results)
-    date = datetime.now().strftime("%Y年%m月%d日 %H:%M")
+    japantime = pytz.timezone('Asia/Tokyo')
+    date = datetime.now(japantime).strftime("%Y年%m月%d日 %H:%M")
     st.success(f"{name}さんの結果は… {result}！")
     
     # 大当たりの時にバルーン飛ばす
